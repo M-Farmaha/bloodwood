@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bloodwood Game Rules</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: sans-serif;
+        text-align: center;
+      }
+      #buttons {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(to right, #0f0f13, #20232f, #0f0f13);
+        padding: 10px;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 10;
+      }
+      button {
+        height: 30px;
+        padding: 0 10px;
+
+        font-size: 16px;
+        cursor: pointer;
+        background: transparent;
+        color: #da0000;
+        border-image: linear-gradient(to bottom, #da0000, #8b0000) 1;
+        border-width: 1px;
+        border-style: solid;
+        z-index: 0;
+        overflow: hidden;
+      }
+      button:hover {
+        color: white;
+        background: linear-gradient(to bottom, #da0000, #8b0000);
+        border-image: linear-gradient(to bottom, #da0000, #8b0000) 1;
+        border-width: 1px;
+        border-style: solid;
+      }
+
+      #pdfContainer {
+        position: absolute;
+        top: 50px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 50px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        text-align: center;
+      }
+      canvas {
+        margin: 0 auto;
+        display: block;
+        width: 100vw;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="buttons">
+      <button onclick="loadPDF('rules_en.pdf')">English</button>
+      <button onclick="loadPDF('rules_ua.pdf')">Українська</button>
+    </div>
+
+    <div id="pdfContainer"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+      const pdfContainer = document.getElementById("pdfContainer");
+
+      function loadPDF(url) {
+        pdfContainer.innerHTML = ""; // очищаємо попередній PDF
+        pdfjsLib
+          .getDocument(url)
+          .promise.then((pdf) => {
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              pdf.getPage(pageNum).then((page) => {
+                const viewport = page.getViewport({ scale: 1 });
+                const canvas = document.createElement("canvas");
+                pdfContainer.appendChild(canvas);
+                const context = canvas.getContext("2d");
+                // масштаб під ширину контейнера
+                const scale = pdfContainer.clientWidth / viewport.width;
+                const scaledViewport = page.getViewport({ scale });
+                canvas.width = scaledViewport.width;
+                canvas.height = scaledViewport.height;
+                page.render({ canvasContext: context, viewport: scaledViewport });
+              });
+            }
+          })
+          .catch((err) => {
+            pdfContainer.innerHTML = '<p style="color:red;">Не вдалося завантажити PDF.</p>';
+            console.error(err);
+          });
+      }
+
+      // Автоматично завантажуємо англійський PDF при відкритті
+      window.onload = function () {
+        loadPDF("rules_en.pdf");
+      };
+    </script>
+  </body>
+</html>
