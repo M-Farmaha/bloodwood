@@ -29,7 +29,6 @@
       button {
         height: 30px;
         padding: 0 10px;
-
         font-size: 16px;
         cursor: pointer;
         background: transparent;
@@ -37,7 +36,7 @@
         border-image: linear-gradient(to bottom, #da0000, #8b0000) 1;
         border-width: 1px;
         border-style: solid;
-        z-index: 0;
+        border-radius: 4px;
         overflow: hidden;
       }
       button:hover {
@@ -57,12 +56,14 @@
         overflow-y: auto;
         overflow-x: hidden;
         text-align: center;
+        background: #111;
       }
       canvas {
-        margin: 0 auto;
+        margin: 10px auto;
         display: block;
-        width: 100vw;
+        max-width: 100%;
         height: auto;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
       }
     </style>
   </head>
@@ -78,32 +79,39 @@
     <script>
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+
       const pdfContainer = document.getElementById("pdfContainer");
 
-      function loadPDF(url) {
+      async function renderPage(pdf, pageNum) {
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1 });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        // масштабуємо під ширину контейнера
+        const scale = pdfContainer.clientWidth / viewport.width;
+        const scaledViewport = page.getViewport({ scale });
+
+        canvas.width = scaledViewport.width;
+        canvas.height = scaledViewport.height;
+
+        pdfContainer.appendChild(canvas);
+
+        await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
+      }
+
+      async function loadPDF(url) {
         pdfContainer.innerHTML = ""; // очищаємо попередній PDF
-        pdfjsLib
-          .getDocument(url)
-          .promise.then((pdf) => {
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-              pdf.getPage(pageNum).then((page) => {
-                const viewport = page.getViewport({ scale: 1 });
-                const canvas = document.createElement("canvas");
-                pdfContainer.appendChild(canvas);
-                const context = canvas.getContext("2d");
-                // масштаб під ширину контейнера
-                const scale = pdfContainer.clientWidth / viewport.width;
-                const scaledViewport = page.getViewport({ scale });
-                canvas.width = scaledViewport.width;
-                canvas.height = scaledViewport.height;
-                page.render({ canvasContext: context, viewport: scaledViewport });
-              });
-            }
-          })
-          .catch((err) => {
-            pdfContainer.innerHTML = '<p style="color:red;">Не вдалося завантажити PDF.</p>';
-            console.error(err);
-          });
+        try {
+          const pdf = await pdfjsLib.getDocument(url).promise;
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            await renderPage(pdf, pageNum); // чекаємо доки кожна сторінка відрендериться
+          }
+        } catch (err) {
+          pdfContainer.innerHTML =
+            '<p style="color:red;">Не вдалося завантажити PDF.</p>';
+          console.error(err);
+        }
       }
 
       // Автоматично завантажуємо англійський PDF при відкритті
