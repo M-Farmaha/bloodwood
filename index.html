@@ -11,31 +11,37 @@
         padding: 0;
       }
 
+      html {
+        background: linear-gradient(to bottom, #60889c, #1c251e);
+      }
+
       body {
         font-family: sans-serif;
         text-align: center;
-      }
+        min-height: 100vh;
+        width: 100vw;
 
-      #buttons {
-        position: fixed;
-        width: 100%;
-        height: 50px;
-        top: 0;
-        z-index: 10;
-
+        background: url("bg.jpg") no-repeat top center fixed;
+        background-size: contain;
         display: flex;
         justify-content: center;
         align-items: center;
+      }
+
+      #buttons {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
         gap: 10px;
-        background: linear-gradient(to right, #0f0f13, #20232f, #0f0f13);
       }
 
       button {
-        height: 30px;
-        padding: 0 10px;
+        padding: 10px;
         font-size: 16px;
         cursor: pointer;
-        background: transparent;
+        background: #000000;
         color: #da0000;
         border-image: linear-gradient(to bottom, #da0000, #8b0000) 1;
         border-width: 1px;
@@ -64,28 +70,8 @@
   </head>
   <body>
     <div id="buttons">
-<button onclick="window.open('rules_en.pdf', '_blank')">English</button>
-<button onclick="window.open('rules_ua.pdf', '_blank')">Українська</button>
+      <button onclick="window.open('rules_en.pdf', '_blank')">English</button>
+      <button onclick="window.open('rules_ua.pdf', '_blank')">Українська</button>
     </div>
-
-    <iframe id="pdfFrame" src="rules_en.pdf"></iframe>
-
-    <script>
-      function loadPDF(url, lang) {
-        const frame = document.getElementById("pdfFrame");
-        frame.src = url;
-
-        if (lang === "ua") {
-          document.title = "Правила гри Bloodwood";
-        } else {
-          document.title = "Bloodwood Game Rules";
-        }
-
-        document.querySelectorAll("#buttons button").forEach((btn) => btn.classList.remove("active"));
-        document.getElementById("btn-" + lang).classList.add("active");
-      }
-
-      document.getElementById("btn-en").classList.add("active");
-    </script>
   </body>
 </html>
