@@ -13,7 +13,15 @@
       body {
         font-family: sans-serif;
         text-align: center;
+        margin-top: 50px;
       }
+
+      iframe {
+        width: 100%;
+        height: calc(100vh - 66px);
+        border: none;
+      }
+
       #buttons {
         display: flex;
         justify-content: center;
@@ -45,25 +53,6 @@
         border-width: 1px;
         border-style: solid;
       }
-
-      #pdfContainer {
-        position: absolute;
-        top: 50px;
-        left: 0;
-        width: 100%;
-        height: calc(100% - 50px);
-        overflow-y: auto;
-        overflow-x: hidden;
-        text-align: center;
-        background: #111;
-      }
-      canvas {
-        margin: 10px auto;
-        display: block;
-        max-width: 100%;
-        height: auto;
-        box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
-      }
     </style>
   </head>
   <body>
@@ -72,51 +61,12 @@
       <button onclick="loadPDF('rules_ua.pdf')">Українська</button>
     </div>
 
-    <div id="pdfContainer"></div>
+    <iframe id="pdfFrame" src="rules_en.pdf" width="100%" height="800px" style="border: none"></iframe>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-
-      const pdfContainer = document.getElementById("pdfContainer");
-
-      async function renderPage(pdf, pageNum) {
-        const page = await pdf.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 1 });
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-
-        // масштабуємо під ширину контейнера
-        const scale = pdfContainer.clientWidth / viewport.width;
-        const scaledViewport = page.getViewport({ scale });
-
-        canvas.width = scaledViewport.width;
-        canvas.height = scaledViewport.height;
-
-        pdfContainer.appendChild(canvas);
-
-        await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
+      function loadPDF(url) {
+        document.getElementById("pdfFrame").src = url;
       }
-
-      async function loadPDF(url) {
-        pdfContainer.innerHTML = ""; // очищаємо попередній PDF
-        try {
-          const pdf = await pdfjsLib.getDocument(url).promise;
-          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            await renderPage(pdf, pageNum); // чекаємо доки кожна сторінка відрендериться
-          }
-        } catch (err) {
-          pdfContainer.innerHTML =
-            '<p style="color:red;">Не вдалося завантажити PDF.</p>';
-          console.error(err);
-        }
-      }
-
-      // Автоматично завантажуємо англійський PDF при відкритті
-      window.onload = function () {
-        loadPDF("rules_en.pdf");
-      };
     </script>
   </body>
 </html>
